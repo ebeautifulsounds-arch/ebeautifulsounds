@@ -7,6 +7,9 @@ const $=id=>document.getElementById(id);
 const msg=(id,text,ok=false)=>{$(id).textContent=text;$(id).classList.toggle('ok',ok)};
 let articles=[];
 $('year').textContent=new Date().getFullYear();
+const isRecovery=location.hash.includes('type=recovery');
+if(isRecovery){$('loginView').hidden=true;$('recoveryView').hidden=false}
+$('recoveryForm').addEventListener('submit',async e=>{e.preventDefault();const p=$('newPassword').value;if(p!==$('confirmPassword').value){msg('recoveryMsg','Labada password isma laha.');return}if(p.length<8){msg('recoveryMsg','Password-ku ha ahaado ugu yaraan 8 xaraf.');return}const {error}=await sb.auth.updateUser({password:p});if(error){msg('recoveryMsg','Password-ka lama beddeli karin: '+error.message);return}history.replaceState(null,'',location.pathname+location.search);$('recoveryView').hidden=true;$('loginView').hidden=false;$('password').value='';msg('loginMsg','Password-ka waa la beddelay. Hadda ku gal password-ka cusub.',true)});
 function slugify(s){return s.toLocaleLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,190)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 async function checkAdmin(user){const {data,error}=await sb.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(error||!data){await sb.auth.signOut();$('loginView').hidden=false;$('adminView').hidden=true;msg('loginMsg','Akoonkan looma oggola maamulka. Hubi in user_id lagu daray admin_users.');return false} $('loginView').hidden=true;$('adminView').hidden=false;$('whoami').textContent='Waxaad ku gashay: '+(user.email||'Admin');await loadArticles();return true}
