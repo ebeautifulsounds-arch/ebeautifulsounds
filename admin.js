@@ -18,7 +18,7 @@ if(isRecovery){$('loginView').hidden=true;$('recoveryView').hidden=false}
 $('recoveryForm').addEventListener('submit',async e=>{e.preventDefault();const p=$('newPassword').value;if(p!==$('confirmPassword').value){msg('recoveryMsg','Labada password isma laha.');return}if(p.length<8){msg('recoveryMsg','Password-ku ha ahaado ugu yaraan 8 xaraf.');return}const {error}=await sb.auth.updateUser({password:p});if(error){msg('recoveryMsg','Password-ka lama beddeli karin: '+error.message);return}history.replaceState(null,'',location.pathname+location.search);$('recoveryView').hidden=true;$('loginView').hidden=false;$('password').value='';msg('loginMsg','Password-ka waa la beddelay. Hadda ku gal password-ka cusub.',true)});
 function slugify(s){return s.toLocaleLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,190)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-async function checkAdmin(user){const {data,error}=await sb.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(error||!data){await sb.auth.signOut();$('loginView').hidden=false;$('adminView').hidden=true;msg('loginMsg','Akoonkan looma oggola maamulka. Hubi in user_id lagu daray admin_users.');return false} $('loginView').hidden=true;$('adminView').hidden=false;$('whoami').textContent='Waxaad ku gashay: '+(user.email||'Admin');await Promise.all([loadArticles(),loadComments()]);return true}
+async function checkAdmin(user){const {data,error}=await sb.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(error||!data){await sb.auth.signOut();$('loginView').hidden=false;$('adminView').hidden=true;msg('loginMsg','Akoonkan looma oggola maamulka. Hubi in user_id lagu daray admin_users.');return false} $('loginView').hidden=true;$('adminView').hidden=false;$('whoami').textContent='Waxaad ku gashay: '+(user.email||'Admin');await Promise.all([loadArticles(),loadComments(),loadSubscribers()]);return true}
 $('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=$('loginForm').querySelector('button[type=submit]');b.disabled=true;msg('loginMsg','Gelitaanka waa la hubinayaa…');try{const {data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;await checkAdmin(data.user)}catch(err){msg('loginMsg',err.message==='Invalid login credentials'?'Email-ka ama password-ku waa khaldan yahay. Haddii aadan password lahayn, isticmaal “Password-ka ma illowday?”':'Gelitaanku wuu fashilmay: '+err.message)}finally{b.disabled=false}});
 $('resetBtn').addEventListener('click',async()=>{const email=$('email').value.trim();if(!email){msg('loginMsg','Marka hore geli email-kaaga kore.');$('email').focus();return}const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});if(error){msg('loginMsg','Email-ka dib-u-dejinta lama diri karin: '+error.message);return}msg('loginMsg','Haddii email-ku sax yahay, hubi inbox-ka iyo spam-ka si aad u dejiso password cusub.',true)});
 $('logoutBtn').addEventListener('click',async()=>{await sb.auth.signOut();$('adminView').hidden=true;$('loginView').hidden=false;$('password').value='';msg('loginMsg','Waad ka baxday maamulka.',true)});
@@ -45,6 +45,16 @@ $('commentList').addEventListener('click',async e=>{
  if(del){const id=del.dataset.commentDelete;if(!confirm('Ma hubtaa inaad tirtirayso faalladan?'))return;const {error}=await sb.from('comments').delete().eq('id',id);if(error){msg('commentsMsg','Faallada lama tirtiri karin: '+error.message);return}msg('commentsMsg','Faallada waa la tirtiray.',true);await loadComments()}
 });
 $('refreshCommentsBtn').addEventListener('click',loadComments);
+async function loadSubscribers(){
+ const box=$('subscriberList');if(!box)return;
+ box.innerHTML='<p class="muted">Liiska isdiiwaangelinta waa la soo rarayaa…</p>';
+ const {data,error}=await sb.from('newsletter_subscribers').select('id,email,created_at').order('created_at',{ascending:false}).limit(500);
+ if(error){box.innerHTML='<p class="message">Liiska email-lada lama soo rari karin: '+esc(error.message)+'</p>';return}
+ const rows=data||[];$('subscriberCount').textContent=rows.length;
+ box.innerHTML=rows.length?'<div class="subscriber-list">'+rows.map(s=>'<div class="subscriber-row"><strong>'+esc(s.email)+'</strong><span class="meta">'+esc(new Date(s.created_at).toLocaleDateString('so-SO'))+'</span></div>').join('')+'</div>':'<p class="muted">Weli qof isma diiwaangelin.</p>';
+}
+$('refreshSubscribersBtn').addEventListener('click',loadSubscribers);
+
 
 $('refreshBtn').addEventListener('click',loadArticles);
 sb.auth.getSession().then(({data})=>{if(data.session?.user)checkAdmin(data.session.user)});
