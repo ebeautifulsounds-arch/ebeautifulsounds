@@ -2,9 +2,14 @@
 'use strict';
 const URL='https://acjxegnfrbfnouzlltlf.supabase.co';
 const KEY='sb_publishable_L5mSPosdediQqVIau0cvGw_3dFn0YyC';
-const sb=window.supabase.createClient(URL,KEY);
 const $=id=>document.getElementById(id);
-const msg=(id,text,ok=false)=>{$(id).textContent=text;$(id).classList.toggle('ok',ok)};
+const msg=(id,text,ok=false)=>{const el=$(id);if(el){el.textContent=text;el.classList.toggle('ok',ok)}};
+function boot(){
+if(!window.supabase || typeof window.supabase.createClient!=='function'){
+msg('loginMsg','Maktabadda gelitaanka ma soo degin. Hubi internetka oo dib u fur bogga.');
+return;
+}
+const sb=window.supabase.createClient(URL,KEY);
 let articles=[];
 $('year').textContent=new Date().getFullYear();
 const isRecovery=location.hash.includes('type=recovery');
@@ -26,4 +31,14 @@ $('articleList').addEventListener('click',async e=>{const edit=e.target.closest(
 $('refreshBtn').addEventListener('click',loadArticles);
 sb.auth.getSession().then(({data})=>{if(data.session?.user)checkAdmin(data.session.user)});
 sb.auth.onAuthStateChange((_event,session)=>{if(!session){$('adminView').hidden=true;$('loginView').hidden=false}});
+ }
+if(window.supabase && typeof window.supabase.createClient==='function'){
+boot();
+}else{
+const fallback=document.createElement('script');
+fallback.src='https://unpkg.com/@supabase/supabase-js@2';
+fallback.onload=boot;
+fallback.onerror=()=>msg('loginMsg','Adeegga gelitaanka lama soo dejin karin. Hubi internetka, kadib dib u fur bogga.');
+document.head.appendChild(fallback);
+}
 })();
