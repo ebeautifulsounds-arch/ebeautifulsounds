@@ -10,6 +10,7 @@ msg('loginMsg','Maktabadda gelitaanka ma soo degin. Hubi internetka oo dib u fur
 return;
 }
 const sb=window.supabase.createClient(URL,KEY);
+msg('loginMsg','Foomka gelitaanku waa diyaar. Geli email-ka iyo password-ka.');
 let articles=[];
 $('year').textContent=new Date().getFullYear();
 const isRecovery=location.hash.includes('type=recovery');
@@ -32,12 +33,13 @@ $('refreshBtn').addEventListener('click',loadArticles);
 sb.auth.getSession().then(({data})=>{if(data.session?.user)checkAdmin(data.session.user)});
 sb.auth.onAuthStateChange((_event,session)=>{if(!session){$('adminView').hidden=true;$('loginView').hidden=false}});
  }
+function safeBoot(){try{boot()}catch(error){console.error('Xogta Hub admin initialization error',error);msg('loginMsg','Bogga maamulka si buuxda uma furmin: '+(error?.message||'qalad aan la aqoon')+'. Dib u cusboonaysii bogga.')}}
 if(window.supabase && typeof window.supabase.createClient==='function'){
-boot();
+safeBoot();
 }else{
 const fallback=document.createElement('script');
 fallback.src='https://unpkg.com/@supabase/supabase-js@2';
-fallback.onload=boot;
+fallback.onload=safeBoot;
 fallback.onerror=()=>msg('loginMsg','Adeegga gelitaanka lama soo dejin karin. Hubi internetka, kadib dib u fur bogga.');
 document.head.appendChild(fallback);
 }
