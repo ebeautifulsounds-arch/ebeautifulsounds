@@ -58,7 +58,7 @@ begin
       add constraint newsletter_subscribers_email_format_check
       check (
         email = lower(btrim(email))
-        and email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+
+        and email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
 drop policy if exists "Admins read all comments" on public.comments;
 create policy "Admins read all comments"
   on public.comments for select to authenticated
