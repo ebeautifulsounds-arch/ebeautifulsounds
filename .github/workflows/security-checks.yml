@@ -1,0 +1,39 @@
+name: Xogta Hub security checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check admin.js
+      - name: Check whitespace and patch errors
+        run: git diff --check
+      - name: Block privileged Supabase secrets in browser files
+        shell: bash
+        run: |
+          if grep -nE 'service_role|sb_secret_[A-Za-z0-9_-]+' index.html app.js admin.html admin.js; then
+            echo "::error::A privileged Supabase secret pattern was found in a browser file."
+            exit 1
+          fi
+      - name: Check that client files use the original Supabase project
+        run: |
+          grep -q 'acjxegnfrbfnouzlltlf.supabase.co' app.js
+          grep -q 'acjxegnfrbfnouzlltlf.supabase.co' admin.js
