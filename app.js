@@ -1,5 +1,23 @@
 (() => {
 'use strict';
+// Recover gracefully if the primary Supabase CDN is unavailable.
+if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+  const fallback = document.createElement('script');
+  fallback.src = 'https://unpkg.com/@supabase/supabase-js@2';
+  fallback.onload = () => {
+    const retry = document.createElement('script');
+    retry.src = 'app.js';
+    document.body.appendChild(retry);
+  };
+  fallback.onerror = () => {
+    const grid = document.getElementById('articlesGrid');
+    const count = document.getElementById('resultCount');
+    if (grid) grid.innerHTML = '<div class="empty"><strong>Wararka lama soo rari karin</strong><br>Maktabadda xogta lama soo dejin karin. Dib u cusboonaysii bogga.</div>';
+    if (count) count.textContent = 'Xiriirku wuu fashilmay';
+  };
+  document.head.appendChild(fallback);
+  return;
+}
 const SUPABASE_URL='https://acjxegnfrbfnouzlltlf.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_L5mSPosdediQqVIau0cvGw_3dFn0YyC';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
@@ -27,5 +45,6 @@ $('searchInput').addEventListener('input',applyFilters);$('loadMore').addEventLi
 $('mobileBtn').addEventListener('click',()=>$('navlinks').classList.toggle('mobile-open'));$('themeBtn').addEventListener('click',()=>{document.body.classList.toggle('dark');const mode=document.body.classList.contains('dark')?'dark':'light';localStorage.setItem('xogtaHubTheme',mode);$('themeBtn').textContent=mode==='dark'?'☀':'☾'});if(localStorage.getItem('xogtaHubTheme')==='dark'){document.body.classList.add('dark');$('themeBtn').textContent='☀'}
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>closeModal(b.dataset.close)));document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id)}));document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal.show').forEach(m=>closeModal(m.id))});
 window.addEventListener('hashchange',async()=>{const match=location.hash.match(/^#article\/(.+)$/);if(!match)return;const slug=decodeURIComponent(match[1]);let a=allArticles.find(x=>x.slug===slug||String(x.id)===slug);if(!a){const {data}=await sb.from('articles').select('*').eq('slug',slug).eq('status','published').maybeSingle();a=data}if(a)openArticle(a.id)});
-$('year').textContent=new Date().getFullYear();loadArticles();
+$('year').textContent=new Date().getFullYear();
+loadArticles().then(()=>{const match=location.hash.match(/^#article\/(.+)$/);if(!match)return;const slug=decodeURIComponent(match[1]);const a=allArticles.find(x=>x.slug===slug||String(x.id)===slug);if(a)openArticle(a.id)});
 })();
