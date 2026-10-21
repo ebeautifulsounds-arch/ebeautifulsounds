@@ -14,6 +14,37 @@ alter table public.newsletter_subscribers enable row level security;
 -- Do not expose the event-trigger helper as a callable public function.
 revoke execute on function public.rls_auto_enable() from public, anon, authenticated;
 
+-- Split public reads from administrator reads. This allows the admin-check
+-- SECURITY DEFINER helper to be unavailable to anonymous visitors.
+drop policy if exists "Anyone can read published articles" on public.articles;
+drop policy if exists "Public can read published articles" on public.articles;
+create policy "Public can read published articles"
+  on public.articles for select to anon, authenticated
+  using (status = 'published');
+
+drop policy if exists "Admins can read all articles" on public.articles;
+create policy "Admins can read all articles"
+  on public.articles for select to authenticated
+  using ((select private.is_xogta_hub_admin()));
+
+drop policy if exists "Public read approved comments" on public.comments;
+drop policy if exists "Public read approved comments only" on public.comments;
+create policy "Public read approved comments only"
+  on public.comments for select to anon, authenticated
+  using (status = 'approved');
+
+drop policy if exists "Admins read all comments" on public.comments;
+create policy "Admins read all comments"
+  on public.comments for select to authenticated
+  using ((select private.is_xogta_hub_admin()));
+
+-- The helper is only needed by authenticated RLS policies. Keep it in the
+-- non-exposed private schema, remove PUBLIC/anon execution, and retain auth access.
+revoke usage on schema private from public, anon;
+grant usage on schema private to authenticated;
+revoke execute on function private.is_xogta_hub_admin() from public, anon;
+grant execute on function private.is_xogta_hub_admin() to authenticated;
+
 -- Remove default/broad table privileges, including TRUNCATE, from client API roles.
 revoke all privileges on table
   public.admin_users,
@@ -22,14 +53,14 @@ revoke all privileges on table
   public.newsletter_subscribers
 from anon, authenticated;
 
--- Anonymous visitors can only read articles (RLS limits this to published rows),
--- read approved comments (RLS), submit pending comments, and subscribe.
+-- Anonymous visitors can only read published articles (RLS), read approved
+-- comments, submit pending comments, and subscribe to the newsletter.
 grant select on table public.articles to anon;
 grant select, insert on table public.comments to anon;
 grant insert on table public.newsletter_subscribers to anon;
 
--- Authenticated users receive only operations needed by the admin app.
--- Existing RLS policies must still identify the actual administrator.
+-- Authenticated users receive operations needed by the admin app.
+-- Existing RLS policies still require private.is_xogta_hub_admin() for admin actions.
 grant select on table public.admin_users to authenticated;
 grant select, insert, update, delete on table public.articles to authenticated;
 grant select, insert, update, delete on table public.comments to authenticated;
@@ -53,12 +84,12 @@ commit;
 -- order by table_name, grantee, privilege_type;
 --
 -- Expected anonymous access:
--- - SELECT articles only; the RLS policy limits rows to published articles.
--- - SELECT/INSERT comments; RLS limits reads to approved comments and inserts to pending.
+-- - SELECT published articles only; RLS limits visible rows.
+-- - SELECT approved comments and INSERT pending comments.
 -- - INSERT newsletter_subscribers only; no SELECT or UPDATE/DELETE.
 -- - No access to admin_users and no UPDATE/DELETE/TRUNCATE on protected tables.
 --
 -- Expected admin access:
 -- - The signed-in user must have a matching row in public.admin_users.
--- - Admin CRUD/moderation is still governed by private.is_xogta_hub_admin() policies.
+-- - Admin CRUD/moderation is governed by private.is_xogta_hub_admin() policies.
 -- - Test admin login, article CRUD, comment moderation, and subscriber list in the browser.
