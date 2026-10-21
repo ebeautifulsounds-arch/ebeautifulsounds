@@ -58,7 +58,135 @@ begin
       add constraint newsletter_subscribers_email_format_check
       check (
         email = lower(btrim(email))
-        and email ~ '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+
+        and email ~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+
+drop policy if exists "Admins read all comments" on public.comments;
+create policy "Admins read all comments"
+  on public.comments for select to authenticated
+  using ((select private.is_xogta_hub_admin()));
+
+-- The helper is only needed by authenticated RLS policies. Keep it in the
+-- non-exposed private schema, remove PUBLIC/anon execution, and retain auth access.
+revoke usage on schema private from public, anon;
+grant usage on schema private to authenticated;
+revoke execute on function private.is_xogta_hub_admin() from public, anon;
+grant execute on function private.is_xogta_hub_admin() to authenticated;
+
+-- Remove default/broad table privileges, including TRUNCATE, from client API roles.
+revoke all privileges on table
+  public.admin_users,
+  public.articles,
+  public.comments,
+  public.newsletter_subscribers
+from anon, authenticated;
+
+-- Anonymous visitors can only read published articles (RLS), read approved
+-- comments, submit pending comments, and subscribe to the newsletter.
+grant select on table public.articles to anon;
+grant select on table public.comments to anon;
+grant insert (article_id, author_name, body, status) on table public.comments to anon;
+grant insert (email) on table public.newsletter_subscribers to anon;
+
+-- Authenticated users receive operations needed by the admin app.
+-- Existing RLS policies still require private.is_xogta_hub_admin() for admin actions.
+grant select on table public.admin_users to authenticated;
+grant select, insert, update, delete on table public.articles to authenticated;
+grant select, insert, update, delete on table public.comments to authenticated;
+grant select, insert on table public.newsletter_subscribers to authenticated;
+
+commit;
+
+-- Verify after applying:
+-- select c.relname, c.relrowsecurity
+-- from pg_class c join pg_namespace n on n.oid=c.relnamespace
+-- where n.nspname='public'
+--   and c.relname in ('admin_users','articles','comments','newsletter_subscribers')
+-- order by c.relname;
+--
+-- Verify least privilege:
+-- select grantee, table_name, privilege_type
+-- from information_schema.role_table_grants
+-- where table_schema='public'
+--   and grantee in ('anon','authenticated')
+--   and table_name in ('admin_users','articles','comments','newsletter_subscribers')
+-- order by table_name, grantee, privilege_type;
+--
+-- Expected anonymous access:
+-- - SELECT published articles only; RLS limits visible rows.
+-- - SELECT approved comments and INSERT pending comments.
+-- - INSERT newsletter_subscribers only; no SELECT or UPDATE/DELETE.
+-- - No access to admin_users and no UPDATE/DELETE/TRUNCATE on protected tables.
+--
+-- Expected admin access:
+-- - The signed-in user must have a matching row in public.admin_users.
+-- - Admin CRUD/moderation is governed by private.is_xogta_hub_admin() policies.
+-- - Test admin login, article CRUD, comment moderation, and subscriber list in the browser.
+
+        and char_length(email) <= 254
+      );
+  end if;
+end $;
+
+drop policy if exists "Admins read all comments" on public.comments;
+create policy "Admins read all comments"
+  on public.comments for select to authenticated
+  using ((select private.is_xogta_hub_admin()));
+
+-- The helper is only needed by authenticated RLS policies. Keep it in the
+-- non-exposed private schema, remove PUBLIC/anon execution, and retain auth access.
+revoke usage on schema private from public, anon;
+grant usage on schema private to authenticated;
+revoke execute on function private.is_xogta_hub_admin() from public, anon;
+grant execute on function private.is_xogta_hub_admin() to authenticated;
+
+-- Remove default/broad table privileges, including TRUNCATE, from client API roles.
+revoke all privileges on table
+  public.admin_users,
+  public.articles,
+  public.comments,
+  public.newsletter_subscribers
+from anon, authenticated;
+
+-- Anonymous visitors can only read published articles (RLS), read approved
+-- comments, submit pending comments, and subscribe to the newsletter.
+grant select on table public.articles to anon;
+grant select, insert on table public.comments to anon;
+grant insert on table public.newsletter_subscribers to anon;
+
+-- Authenticated users receive operations needed by the admin app.
+-- Existing RLS policies still require private.is_xogta_hub_admin() for admin actions.
+grant select on table public.admin_users to authenticated;
+grant select, insert, update, delete on table public.articles to authenticated;
+grant select, insert, update, delete on table public.comments to authenticated;
+grant select, insert on table public.newsletter_subscribers to authenticated;
+
+commit;
+
+-- Verify after applying:
+-- select c.relname, c.relrowsecurity
+-- from pg_class c join pg_namespace n on n.oid=c.relnamespace
+-- where n.nspname='public'
+--   and c.relname in ('admin_users','articles','comments','newsletter_subscribers')
+-- order by c.relname;
+--
+-- Verify least privilege:
+-- select grantee, table_name, privilege_type
+-- from information_schema.role_table_grants
+-- where table_schema='public'
+--   and grantee in ('anon','authenticated')
+--   and table_name in ('admin_users','articles','comments','newsletter_subscribers')
+-- order by table_name, grantee, privilege_type;
+--
+-- Expected anonymous access:
+-- - SELECT published articles only; RLS limits visible rows.
+-- - SELECT approved comments and INSERT pending comments.
+-- - INSERT newsletter_subscribers only; no SELECT or UPDATE/DELETE.
+-- - No access to admin_users and no UPDATE/DELETE/TRUNCATE on protected tables.
+--
+-- Expected admin access:
+-- - The signed-in user must have a matching row in public.admin_users.
+-- - Admin CRUD/moderation is governed by private.is_xogta_hub_admin() policies.
+-- - Test admin login, article CRUD, comment moderation, and subscriber list in the browser.
+
 drop policy if exists "Admins read all comments" on public.comments;
 create policy "Admins read all comments"
   on public.comments for select to authenticated
