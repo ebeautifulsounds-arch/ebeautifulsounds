@@ -1,0 +1,42 @@
+name: Validate Xogta Hub
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check admin.js
+      - name: Check JavaScript-to-HTML element references
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          function check(jsPath, htmlPath, dynamic = []) {
+            const js = fs.readFileSync(jsPath, 'utf8');
+            const html = fs.readFileSync(htmlPath, 'utf8');
+            const refs = [...js.matchAll(/\$\(['"]([^'"]+)['"]\)/g)].map(m => m[1]);
+            const missing = [...new Set(refs)].filter(id => !dynamic.includes(id) && !html.includes('id="' + id + '"'));
+            if (missing.length) {
+              console.error(jsPath + ' references missing IDs in ' + htmlPath + ': ' + missing.join(', '));
+              process.exitCode = 1;
+            }
+          }
+          check('app.js', 'index.html', ['shareArticle', 'copyArticleLink']);
+          check('admin.js', 'admin.html');
+          NODE
