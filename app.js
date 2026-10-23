@@ -3,7 +3,7 @@
 // Recover gracefully if the primary Supabase CDN is unavailable.
 if (!window.supabase || typeof window.supabase.createClient !== 'function') {
   const fallback = document.createElement('script');
-  fallback.src = 'https://unpkg.com/@supabase/supabase-js@2';
+  fallback.src = 'https://unpkg.com/@supabase/supabase-js@2.118.0';
   fallback.onload = () => {
     const retry = document.createElement('script');
     retry.src = 'app.js';
