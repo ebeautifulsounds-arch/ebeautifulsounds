@@ -4,3 +4,5 @@
 @media(max-width:850px){.columns{grid-template-columns:1fr}.heading{align-items:flex-start}.shell{margin:22px auto}.panel{padding:19px}.listhead{align-items:flex-start}.stats{gap:9px}.stat{padding:15px}}
 @media(max-width:480px){.top{padding:0 15px}.top span{font-size:9px}.shell{padding:0 12px}.heading h1{font-size:24px}.twocol{grid-template-columns:1fr;gap:0}.buttons{align-items:stretch;flex-wrap:wrap}.buttons button{flex:1}.listhead{gap:10px}.subscriber-row{align-items:flex-start;flex-direction:column;gap:4px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
+
+.panel-spaced{margin-top:20px}
