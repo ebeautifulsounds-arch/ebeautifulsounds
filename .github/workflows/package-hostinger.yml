@@ -1,0 +1,34 @@
+name: Package Xogta Hub for Hostinger
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prepare public website files only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p package
+          cp .htaccess index.html styles.css app.js admin.html admin.css admin.js about.html privacy.html editorial.html contact.html legal.css package/
+          test "$(find package -maxdepth 1 -type f | wc -l)" -eq 12
+          zip -j xogta-hub-hostinger.zip package/.htaccess package/index.html package/styles.css package/app.js package/admin.html package/admin.css package/admin.js package/about.html package/privacy.html package/editorial.html package/contact.html package/legal.css
+          unzip -l xogta-hub-hostinger.zip
+
+      - name: Upload deployment ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: xogta-hub-hostinger
+          path: xogta-hub-hostinger.zip
+          if-no-files-found: error
+          retention-days: 14
