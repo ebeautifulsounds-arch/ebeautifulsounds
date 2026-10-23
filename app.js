@@ -22,14 +22,14 @@ const SUPABASE_URL='https://acjxegnfrbfnouzlltlf.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_L5mSPosdediQqVIau0cvGw_3dFn0YyC';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 const $=id=>document.getElementById(id);
-const CATS={ai:{label:'AI & Tech',icon:'🤖'},sports:{label:'Ciyaaraha',icon:'⚽'},nature:{label:'Saynis & Dabeecad',icon:'🌍'},tech:{label:'Tiknoolajiyada',icon:'💻'}};
+const CATS={ai:{label:'AI & Tech',icon:'🤖'},sports:{label:'Ciyaaraha',icon:'⚽'},nature:{label:'Saynis & Nolol',icon:'🌍'},tech:{label:'Tiknoolajiyada',icon:'💻'}};
 let allArticles=[],filteredArticles=[],activeArticle=null,activeCategory='all',shown=9;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=s=>{if(!s)return 'Taariikh lama sheegin';const d=new Date(s);return isNaN(d)?'Taariikh lama sheegin':d.toLocaleDateString('so-SO',{year:'numeric',month:'short',day:'numeric'})};
 const safeUrl=s=>{try{const u=new URL(s);return ['https:','http:'].includes(u.protocol)?u.href:''}catch{return ''}};
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('show'),3200)}
 function openModal(id){$(id).classList.add('show');document.body.style.overflow='hidden'}
-function closeModal(id){$(id).classList.remove('show');if(!document.querySelector('.modal.show'))document.body.style.overflow='';if(id==='articleModal'){activeArticle=null;history.replaceState(null,'',location.pathname+location.search);document.title='Xogta Hub — Xogta maanta, aragtida berri'}}
+function closeModal(id){$(id).classList.remove('show');if(!document.querySelector('.modal.show'))document.body.style.overflow='';if(id==='articleModal'){activeArticle=null;history.replaceState(null,'',location.pathname+location.search);document.title='Xogta Hub — Faham dheeraad ah. Go’aan fiican.'}}
 function category(c){return CATS[c]||{label:c||'Warar',icon:'📰'}}
 function applyFilters(){const term=$('searchInput').value.trim().toLocaleLowerCase();filteredArticles=allArticles.filter(a=>(activeCategory==='all'||(activeCategory==='ai'&&(a.category==='ai'||a.category==='tech'))||a.category===activeCategory)&&(!term||[a.title,a.description,a.content,category(a.category).label].join(' ').toLocaleLowerCase().includes(term)));shown=9;renderArticles()}
 function renderFeaturedArticle(){const a=allArticles[0];const panel=$('heroFeatured');if(!panel)return;if(!a){panel.hidden=true;return}panel.hidden=false;const c=category(a.category);$('heroFeaturedCategory').textContent=c.icon+' '+c.label;$('heroFeaturedTitle').textContent=a.title;$('heroFeaturedDescription').textContent=a.description||'Maqaalkan ka akhri Xogta Hub.';$('heroFeaturedDate').textContent=dateLabel(a.published_at||a.created_at);$('heroFeaturedRead').disabled=false;$('heroFeaturedRead').onclick=()=>openArticle(a.id)}
