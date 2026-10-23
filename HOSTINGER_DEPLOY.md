@@ -6,28 +6,20 @@ Xogta Hub is a static HTML/CSS/JavaScript frontend backed by the existing Supaba
 
 Production domain: `https://xogtahub.co`
 
-## Important: do not publish the entire repository
+## 1. Download the safe deployment package
 
-The GitHub ZIP also contains developer documentation, GitHub Actions workflows, deployment configuration, and the Supabase SQL security file. These are not website assets and should not be placed in the public document root.
+Use the dedicated GitHub Actions workflow to build a ZIP containing only the public website files. This avoids accidentally uploading developer documentation, GitHub workflows, or the Supabase SQL file to the public website.
 
-Upload only these files from the repository root into the domain's `public_html` folder:
+1. Open the repository: https://github.com/ebeautifulsounds-arch/ebeautifulsounds
+2. Select **Actions**.
+3. Open **Package Xogta Hub for Hostinger**.
+4. Select the latest successful run.
+5. Under **Artifacts**, download `xogta-hub-hostinger`. Extract the downloaded artifact ZIP to get `xogta-hub-hostinger.zip`.
+6. The deployment ZIP contains only `.htaccess`, the homepage, CSS/JS, admin files, and the About, Privacy, Editorial and Contact pages.
 
-- `.htaccess`
-- `index.html`
-- `styles.css`
-- `app.js`
-- `admin.html`
-- `admin.css`
-- `admin.js`
-- `about.html`
-- `privacy.html`
-- `editorial.html`
-- `contact.html`
-- `legal.css`
+Do not upload the full GitHub repository ZIP to `public_html`. Never publish `.github/`, `supabase/`, `render.yaml`, `README.md`, or internal deployment documentation in the website root.
 
-Do **not** upload the `.github/` folder, `supabase/` folder, `render.yaml`, `README.md`, or this deployment guide into `public_html`.
-
-## 1. Connect the domain and enable HTTPS
+## 2. Connect the domain and enable HTTPS
 
 1. In Hostinger hPanel, open **Websites** and select the hosting plan.
 2. Add or assign `xogtahub.co` to the shared hosting website.
@@ -40,16 +32,16 @@ Hostinger's official guides:
 - https://support.hostinger.com/en/articles/1863967-how-to-point-a-domain-to-hostinger
 - https://www.hostinger.com/support/1575761-how-to-claim-a-free-ssl-that-comes-with-a-hostinger-hosting-plan/
 
-## 2. Upload the public website files
+## 3. Upload the public website files
 
 1. Open **Websites → Manage → File Manager** for `xogtahub.co`.
 2. Open the domain's document root, normally `public_html`.
 3. If it already contains files, back them up before replacing anything.
-4. Upload the public files listed above. They must be directly inside `public_html`, not buried inside an extra repository folder.
-5. If using the GitHub ZIP, extract it into a temporary location, copy only the listed public files into `public_html`, then delete the temporary extracted repository and archive. Never leave the `supabase/` folder or internal configuration in the public root.
+4. Upload `xogta-hub-hostinger.zip` and extract it directly into `public_html`. Confirm that `index.html`, `styles.css`, `app.js`, and `.htaccess` are directly inside `public_html`, not inside another nested folder.
+5. Confirm the archive has been extracted correctly. The ZIP can then be deleted from the document root.
 6. Verify that `.htaccess` is in the document root. It forces HTTPS and sets security headers, so first confirm the domain's SSL certificate is active.
 
-## 3. Configure Supabase Auth for the new domain
+## 4. Configure Supabase Auth for the new domain
 
 Use the existing Supabase project; do not create a replacement project or database.
 
@@ -68,20 +60,20 @@ The admin password-recovery code redirects to the current origin and `/admin.htm
 
 The frontend uses the Supabase publishable key. Do not replace it with a service-role or secret key. No database migration is required merely to change the website domain.
 
-## 4. Verify the deployment
+## 5. Verify the deployment
 
 Check both `https://xogtahub.co/` and `https://xogtahub.co/admin.html`:
 
 - Homepage, CSS, JavaScript, navigation, policy pages, article search and category filters load.
-- Supabase returns the published articles from the existing shared database.
-- Exactly 15 new educational articles are intended to be published; three earlier articles were kept as drafts. Verify actual status in the database rather than relying on this note alone.
+- Supabase returns published articles from the existing shared database.
+- The live database currently has 15 published articles and 3 drafts (18 total). Verify these statuses again after deployment; do not delete or recreate articles.
 - Admin login succeeds only for the authorized admin account; a non-admin account is rejected.
 - Test article create/edit/draft/publish, comment moderation, and newsletter signup.
 - Test password recovery and confirm the redirect returns to the new domain.
 - Check browser console and network requests for failed scripts, CSP violations, or Supabase errors.
 - Verify the database row counts and content remain intact.
 
-## 5. Security notes and remaining tasks
+## 6. Security notes and remaining tasks
 
 - The live Supabase Security Advisor has reported leaked-password protection as disabled. Enable it in Supabase Auth settings when available.
 - The repository's `supabase/security-remediation.sql` is a reference/migration file only; it is not run by Hostinger or GitHub Pages. Review the live policies and take a backup before applying any SQL manually.
