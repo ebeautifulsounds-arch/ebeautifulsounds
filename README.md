@@ -1,34 +1,24 @@
 # Xogta Hub
 
-Warbaahin dijitaal ah oo af-Soomaali ku soo bandhigta warar iyo falanqayn ku saabsan AI, tignoolajiyada, ciyaaraha, sayniska iyo dabeecadda.
+Madal af-Soomaali ah oo leh maqaallo waxbarasho iyo kuwo waxtar leh, naqshad editorial oo responsive ah, raadis, shaandhayn qaybo, faallooyin la dhexdhexaadiyo, newsletter iyo admin dashboard.
 
-## Faylasha
-- `index.html` — bogga ugu weyn, metadata iyo qaab-dhismeedka bogga
-- `styles.css` — naqshadda responsive ee desktop iyo mobile
-- `app.js` — soo rarista maqaallada Supabase, raadinta, qaybaha, daawashada maqaalka, faallooyinka iyo newsletter-ka
-- `render.yaml` — Render Static Site Blueprint (build uma baahna)
+## Faylasha muhiimka ah
+- `index.html` — bogga hore ee cusub
+- `styles.css` — naqshadda responsive iyo theme
+- `app.js` — akhrinta maqaallada, raadinta, faallooyinka iyo newsletter-ka
+- `admin.html`, `admin.css`, `admin.js` — admin dashboard iyo login
+- `about.html`, `privacy.html`, `editorial.html`, `contact.html` — bogagga kalsoonida iyo siyaasadaha
+- `supabase/security-remediation.sql` — xeerarka database-ka iyo rukhsadaha
+- `HOSTINGER_DEPLOY.md` — tallaabooyinka upload-ka Hostinger iyo launch checklist
 
-## Daabacaadda Render
-1. Fur Render Dashboard oo dooro **New → Blueprint** ama **New → Static Site**.
-2. Ku xidh repository-ga `ebeautifulsounds-arch/ebeautifulsounds`, branch `main`.
-3. Blueprint-ku wuxuu adeegsadaa `echo "No build step required"` iyo publish directory `.` maadaama boggu yahay HTML/CSS/JS saafi ah.
-4. Daar auto-deploy si isbeddellada `main` loogu daabaco.
+## Content
+15 maqaal cusub oo asal ah ayaa lagu daabacay Supabase. Saddexdii maqaal ee hore waxaa loo beddelay qabyo (draft), sidaas darteed booqdayaashu waxay arkaan 15-ka cusub oo keliya. Maqaalladu waa qoraallo waxbarasho; xaqiiqooyinka degdeg isu beddela waa in la hubiyaa ka hor daabacaad.
 
-**Fiiro gaar ah:** Isku daygii otomaatiga ahaa ee abuurista adeegga Render waxaa joojiyay Render isagoo dalbanaya in xogta billing-ka lagu daro akoonka (`402 Payment information is required`). Ma jiro URL live ah oo la xaqiijiyay ilaa adeegga la abuuro oo deploy-ku guuleysto.
+## Supabase iyo amniga
+Frontend-ku wuxuu adeegsadaa publishable key oo keliya. Ha gelin service-role key, database password, ama secret kale faylasha browser-ka. RLS iyo least-privilege grants waa in la ilaaliyaa. Security Advisor wali wuxuu sheegayaa in leaked-password protection uu dansan yahay; tani waxay u baahan tahay in lagu shido Supabase Auth settings. Ammaan buuxa ama eber nuglaansho lama dammaanad qaadi karo, sidaas darteed samee tijaabooyin joogto ah.
 
-## Supabase
-Boggu wuxuu adeegsadaa Supabase project-ka loo habeeyay ee ku jira `app.js`. Kaliya publishable/anon key ayaa browser-ka ku jira; waligaa ha gelin `service_role` key ama password sir ah repository-ga.
+## Daabacaadda
+Website-ku waa static HTML/CSS/JS, sidaas darteed uma baahna build command. Raac `HOSTINGER_DEPLOY.md` si faylasha loogu geliyo document root-ka domain-ka Hostinger. Kadib ku cusboonaysii Supabase Auth Site URL iyo allowed redirect URLs domain-ka dhabta ah.
 
-Maqaallada waa inay ku jiraan `public.articles` oo leh `status = 'published'`. Qaybaha ay boggu kala saaro waa `ai`, `sports`, iyo `nature` (wuxuu aqbalaa sidoo kale `tech`). Faallooyinka waxaa lagu kaydiyaa `public.comments` iyadoo xaaladdoodu tahay `pending`; liiska newsletter-ka wuxuu ku kaydiyaa `public.newsletter_subscribers`.
-
-## Tijaabinta
-Marka la daabaco, hubi bogga guriga, in maqaallada soo baxaan, raadinta iyo filter-yadu shaqeeyaan, faallooyinka la gudbin karo, iyo newsletter-ka la diiwaangelin karo. Haddii xogtu soo bixi weydo, hubi RLS policies-ka Supabase iyo in maqaallada la daabacay ay jiraan.
-
-## Beddel bilaash ah: GitHub Pages
-Haddii Render wali dalbado xog billing, repository-gu wuxuu leeyahay workflow `.github/workflows/deploy-pages.yml` oo ku daabici kara GitHub Pages:
-1. Tag **Settings → Pages** ee repository-ga.
-2. Qaybta **Build and deployment**, dooro **GitHub Actions**.
-3. Tag **Actions → Deploy Xogta Hub to GitHub Pages** oo riix **Run workflow** (ama samee commit cusub oo branch-ka `main` ah).
-4. Marka workflow-gu guuleysto, URL-ku wuxuu ka muuqan doonaa summary-ga deployment-ka.
-
-GitHub Pages waxay u adeegtaa faylasha static-ka oo keliya; xogta maqaalada iyo foomamku waxay weli ku tiirsan yihiin Supabase. Workflow-ga wuxuu adeegsadaa habka GitHub Pages custom workflow ee rasmiga ah.
+## Google AdSense
+Bogagga About, Privacy, Editorial Standards iyo Contact waa la diyaariyey. Tani ma dammaanad qaadayso ansixinta AdSense; Google ayaa go'aanka leh. Kahor codsiga, xaqiiji in domain-ku live yahay, HTTPS shaqaynayo, xiriirka sax yahay, maqaalladu yihiin kuwo asal ah oo waxtar leh, mana jiraan bogag khaldan ama link-yo jaban.
