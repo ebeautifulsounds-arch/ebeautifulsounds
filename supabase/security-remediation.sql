@@ -93,6 +93,18 @@ grant select, insert, update, delete on table public.articles to authenticated;
 grant select, insert, update, delete on table public.comments to authenticated;
 grant select, insert on table public.newsletter_subscribers to authenticated;
 
+-- Keep public SELECT policies on the anon role only. Authenticated admins
+-- use their separate admin-only policies, avoiding overlapping SELECT policies.
+drop policy if exists "Public can read published articles" on public.articles;
+create policy "Public can read published articles"
+  on public.articles for select to anon
+  using (status = 'published');
+
+drop policy if exists "Public read approved comments" on public.comments;
+create policy "Public read approved comments"
+  on public.comments for select to anon
+  using (status = 'approved');
+
 commit;
 
 -- Verify after applying:
