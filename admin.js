@@ -65,7 +65,7 @@ if(window.supabase && typeof window.supabase.createClient==='function'){
 safeBoot();
 }else{
 const fallback=document.createElement('script');
-fallback.src='https://unpkg.com/@supabase/supabase-js@2';
+fallback.src='https://unpkg.com/@supabase/supabase-js@2.118.0';
 fallback.onload=safeBoot;
 fallback.onerror=()=>msg('loginMsg','Adeegga gelitaanka lama soo dejin karin. Hubi internetka, kadib dib u fur bogga.');
 document.head.appendChild(fallback);
